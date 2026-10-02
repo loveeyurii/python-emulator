@@ -1,0 +1,91 @@
+# phone.py
+from apps import AppManager
+
+
+class Phone:
+    def __init__(self, name="Phone", battery=100, signal=5, storage=128):
+        self.name = name
+        self.battery = battery
+        self.signal = signal
+        self.storage = storage
+        self.app_manager = AppManager()
+        self.running = True
+
+    def show_status(self):
+        print(f"\n=== {self.name} Status ===")
+        print(f"Battery: {self.battery}%")
+        print(f"Signal: {self.signal}/5")
+        print(f"Storage: {self.storage} GB")
+        print(f"Apps: {', '.join(self.app_manager.list_apps())}")
+
+    def show_help(self):
+        commands = [
+            "help - show available commands",
+            "status - show phone status",
+            "apps - show installed apps",
+            "open <app> - open an app",
+            "charge - recharge battery",
+            "notify - trigger notification",
+            "quit - exit emulator",
+        ]
+        print("\nAvailable commands:")
+        for cmd in commands:
+            print(f"  - {cmd}")
+
+    def open_app(self, app_name):
+        if not self.app_manager.has_app(app_name):
+            print(f"App '{app_name}' not found.")
+            return
+
+        app = self.app_manager.get_app(app_name)
+        print(f"\nOpening {app_name}...")
+        app.run()
+
+    def notify(self, message="New message received"):
+        print(f"\n[Notification] {message}")
+        self.battery = max(0, self.battery - 1)
+
+    def charge(self):
+        self.battery = min(100, self.battery + 25)
+        print("\nPhone is charging... battery increased.")
+
+    def run(self):
+        while self.running:
+            try:
+                cmd = input("\nphone> ").strip().lower()
+            except EOFError:
+                print("\nExiting emulator.")
+                break
+
+            if not cmd:
+                continue
+
+            parts = cmd.split()
+            action = parts[0]
+
+            if action == "help":
+                self.show_help()
+            elif action == "status":
+                self.show_status()
+            elif action == "apps":
+                print("\nInstalled apps:")
+                for app in self.app_manager.list_apps():
+                    print(f"  - {app}")
+            elif action == "open":
+                if len(parts) < 2:
+                    print("Usage: open <app>")
+                else:
+                    self.open_app(parts[1])
+            elif action == "charge":
+                self.charge()
+            elif action == "notify":
+                self.notify()
+            elif action == "quit":
+                print("Shutting down emulator.")
+                self.running = False
+            else:
+                print(f"Unknown command: '{cmd}'")
+                self.show_help()
+
+            if self.battery <= 5:
+                print("\nLow battery warning. Please charge the phone.")
